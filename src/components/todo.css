@@ -1,0 +1,43 @@
+.MuiInputBase-input.Mui-disabled{
+    color: Black;
+    font-weight: 800;
+}
+
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+
+
+input[type=date]:required:invalid::-webkit-datetime-edit {
+    color: transparent;
+}
+input[type=date]:focus::-webkit-datetime-edit {
+    color: black !important;
+}
+
+.todo-content-9 .viewAll{
+    background-color: #3f51b5;
+    height: 56px;
+    margin-left: 20px;
+    color: white;
+    border-radius: 99px;
+}
+
+.todo-content-9 .viewAll:hover{
+    background-color: white;
+    color: #3f51b5;
+}
+
+.MuiGrid-spacing-xs-2 > .MuiGrid-item .todo-root-15:hover {
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+    transition: all 200ms ease-out;
+    transform: scale(1.015);
+}
+
+::-webkit-datetime-edit-year-field:not([aria-valuenow]),
+::-webkit-datetime-edit-month-field:not([aria-valuenow]),
+::-webkit-datetime-edit-day-field:not([aria-valuenow]) {
+    color: transparent;
+}

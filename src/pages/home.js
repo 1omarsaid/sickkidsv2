@@ -3,6 +3,12 @@ import API from "../util/API";
 
 import Account from '../components/account';
 import Todo from '../components/todo';
+import Haem from '../components/haem';
+import Ch from '../components/ch';
+import Met from '../components/met';
+import Cah from '../components/cah';
+import Scid from '../components/scid'
+
 
 import Drawer from '@material-ui/core/Drawer';
 import AppBar from '@material-ui/core/AppBar';
@@ -64,21 +70,44 @@ const styles = (theme) => ({
 
 class home extends Component {
 	state = {
-		render: false
+		render: "Todo"
 	};
 
 	loadAccountPage = (event) => {
-		this.setState({ render: true });
+		this.setState({ render: "Account" });
 	};
 
 	loadTodoPage = (event) => {
-		this.setState({ render: false });
+		this.setState({ render: "Todo" });
 	};
 
 	logoutHandler = (event) => {
 		localStorage.removeItem('AuthToken');
 		this.props.history.push('/login');
 	};
+
+	loadPage = () => {
+		
+	switch(this.state.render) {
+		case "Todo":
+			return(<Todo />)
+		case "Account":
+			return(<Account />)
+		case "Haem":
+			return(<Haem />)
+		case "Ch":
+			return(<Ch />)
+		case "Met":
+			return(<Met />)
+		case "Cah":
+			return(<Cah />)
+		case "Scid":
+			return(<Scid />)			
+		default:
+			return(<Todo />)
+		}
+
+	}
 
 	constructor(props) {
 		super(props);
@@ -100,7 +129,6 @@ class home extends Component {
 			API
 			.get('/user')
 			.then((response) => {
-                console.log(response.data);
 				this.setState({
 					firstName: response.data.userCredentials.firstName,
 					lastName: response.data.userCredentials.lastName,
@@ -111,7 +139,7 @@ class home extends Component {
 				});
 			})
 			.catch((error) => {
-				if(error.response.status === 403) {
+				if(error.response?.status === 403) {
 					this.props.history.push('/login')
 				}
 				console.log(error);
@@ -158,22 +186,55 @@ class home extends Component {
 						</center>
 						<Divider />
 						<List>
-							<ListItem button key="FC" onClick={this.loadTodoPage}>
-								<ListItemIcon>
-									{' '}
-									<NotesIcon />{' '}
-								</ListItemIcon>
-								<ListItemText primary="FC" />
-							</ListItem>
-
-							<ListItem button key="Account" onClick={this.loadAccountPage}>
+							<ListItem button key="Account" onClick={() => {this.setState({ render: "Account" })}}>
 								<ListItemIcon>
 									{' '}
 									<AccountBoxIcon />{' '}
 								</ListItemIcon>
 								<ListItemText primary="Account" />
 							</ListItem>
-
+							<ListItem button key="FC" onClick={() => {this.setState({ render: "Todo" })}}>
+								<ListItemIcon>
+									{' '}
+									<NotesIcon />{' '}
+								</ListItemIcon>
+								<ListItemText primary="FC" />
+							</ListItem>
+							<ListItem button key="HAEM" onClick={() => {this.setState({ render: "Haem" })}}>
+								<ListItemIcon>
+									{' '}
+									<NotesIcon />{' '}
+								</ListItemIcon>
+								<ListItemText primary="HAEM" />
+							</ListItem>
+							<ListItem button key="CH" onClick={() => {this.setState({ render: "Ch" })}}>
+								<ListItemIcon>
+									{' '}
+									<NotesIcon />{' '}
+								</ListItemIcon>
+								<ListItemText primary="CH" />
+							</ListItem>
+							<ListItem button key="MET" onClick={() => {this.setState({ render: "Met" })}}>
+								<ListItemIcon>
+									{' '}
+									<NotesIcon />{' '}
+								</ListItemIcon>
+								<ListItemText primary="MET" />
+							</ListItem>
+							<ListItem button key="CAH" onClick={() => {this.setState({ render: "Cah" })}}>
+								<ListItemIcon>
+									{' '}
+									<NotesIcon />{' '}
+								</ListItemIcon>
+								<ListItemText primary="CAH" />
+							</ListItem>
+							<ListItem button key="SCID" onClick={() => {this.setState({ render: "Scid" })}}>
+								<ListItemIcon>
+									{' '}
+									<NotesIcon />{' '}
+								</ListItemIcon>
+								<ListItemText primary="SCID" />
+							</ListItem>
 							<ListItem button key="Logout" onClick={this.logoutHandler}>
 								<ListItemIcon>
 									{' '}
@@ -184,7 +245,7 @@ class home extends Component {
 						</List>
 					</Drawer>
 
-					<div>{this.state.render ? <Account /> : <Todo />}</div>
+					<div>{this.loadPage()}</div>
 				</div>
 			);
 		}

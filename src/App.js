@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import login from './pages/login';
 import signup from './pages/signup';
 import home from './pages/home';
+import resetPassword from './pages/resetPassword'
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
         <Switch>
             <Route exact path="/login" component={login}/>
             <Route exact path="/signup" component={signup}/>
+            <Route exact path="/resetpassword" component={resetPassword}/>
             <Route exact path="/" component={home}/>
         </Switch>
       </div>

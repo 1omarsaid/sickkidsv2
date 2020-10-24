@@ -84,7 +84,6 @@ class account extends Component {
 		API
 			.get('/user')
 			.then((response) => {
-				console.log(response.data);
 				this.setState({
 					firstName: response.data.userCredentials.firstName,
 					lastName: response.data.userCredentials.lastName,

@@ -53,8 +53,8 @@ class signup extends Component {
 		};
 	}
 
-	componentWillReceiveProps(nextProps) {
-		if (nextProps.UI.errors) {
+	UNSAFE_componentWillReceiveProps(nextProps) {
+		if (nextProps.UI?.errors) {
 			this.setState({
 				errors: nextProps.UI.errors
 			});
@@ -70,6 +70,18 @@ class signup extends Component {
 	handleSubmit = (event) => {
 		event.preventDefault();
 		this.setState({ loading: true });
+
+		var regex = new RegExp("^[a-z0-9](\.?[a-z0-9]){4,}@sickkids\.ca")
+		if(!regex.test(this.state.email)){
+			this.setState({
+				errors: {
+					email: 'Can only use @sickkids.ca email'
+				},
+				loading: false
+			});
+			return
+		}
+
 		const newUserData = {
 			firstName: this.state.firstName,
 			lastName: this.state.lastName,
@@ -94,7 +106,6 @@ class signup extends Component {
 				});
 			});
 	};
-
 	render() {
 		const { classes } = this.props;
 		const { errors, loading } = this.state;

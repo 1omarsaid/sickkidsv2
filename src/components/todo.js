@@ -16,13 +16,11 @@ import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import CardContent from '@material-ui/core/CardContent';
-import MuiDialogTitle from '@material-ui/core/DialogTitle';
-import MuiDialogContent from '@material-ui/core/DialogContent';
-
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { authMiddleWare } from '../util/auth';
 import API from "../util/API";
+import './todo.css'
 
 
 const styles = (theme) => ({
@@ -86,6 +84,7 @@ const styles = (theme) => ({
 		top: theme.spacing(1),
 		color: theme.palette.grey[500]
 	}
+
 });
 
 const Transition = React.forwardRef(function Transition(props, ref) {
@@ -146,7 +145,7 @@ class todo extends Component {
 		});
 	};
 
-	handleSearch = (event) => {
+	handleSearch = (event) => {	
 		if (event.key !== 'Enter') {
 			return
 		  }
@@ -155,17 +154,23 @@ class todo extends Component {
 			todos: '',
 			uiLoading: true
 		})
-
 		API
-			.get(`/todo/`)
+			.get(`/todo/${event.target.value}`)
 			.then((response) => {
+
 				this.setState({
 					todos: response.data,
 					uiLoading: false
 				});
 			})
 			.catch((err) => {
-				console.log(err);
+				this.setState({
+					todos: [],
+					uiLoading: false,
+					errors: {
+						search: 'No results found'
+					}
+				});
 			});
 	}
 
@@ -198,7 +203,54 @@ class todo extends Component {
 			});
 	}
 
-	handleEditClickOpen(data) {
+	handleViewAllData = (downloadData) => {
+		authMiddleWare(this.props.history);
+		API
+			.get('/todos')
+			.then((response) => {
+				this.setState({
+					todos: response.data,
+					uiLoading: false
+				});
+			})
+			.catch((err) => {
+				console.log(err);
+			});
+
+		if(downloadData){
+			var json = this.state.todos
+			var fields = Object.keys(json[0])
+			var replacer = function(key, value) { return value === null ? '' : value } 
+			var csv = json.map(function(row){
+			return fields.map(function(fieldName){
+				return JSON.stringify(row[fieldName], replacer)
+			}).join(',')
+			})
+			csv.unshift(fields.join(','))
+			csv = csv.join('\r\n');
+			var downloadLink = document.createElement("a");
+			var blob = new Blob(["\ufeff", csv]);
+			var url = URL.createObjectURL(blob);
+			downloadLink.href = url;
+			downloadLink.download = "data.csv";
+
+			document.body.appendChild(downloadLink);
+			downloadLink.click();
+			document.body.removeChild(downloadLink);
+		}
+
+	}
+
+	handleEditClickOpen(data={}, type="") {
+		if(type === "edit"){
+			this.setState({
+				viewType: 'edit'
+			})
+		}else if(type === "view"){
+			this.setState({
+				viewType: 'view'
+			})
+		}
 		this.setState({
 			case: data.todo.case,
 			nso: data.todo.nso,
@@ -271,29 +323,10 @@ class todo extends Component {
 	}
 
 	render() {
-		const DialogTitle = withStyles(styles)((props) => {
-			const { children, classes, onClose, ...other } = props;
-			return (
-				<MuiDialogTitle disableTypography className={classes.root} {...other}>
-					<Typography variant="h6">{children}</Typography>
-					{onClose ? (
-						<IconButton aria-label="close" className={classes.closeButton} onClick={onClose}>
-							<CloseIcon />
-						</IconButton>
-					) : null}
-				</MuiDialogTitle>
-			);
-		});
-		
-		const DialogContent = withStyles((theme) => ({
-			viewRoot: {
-				padding: theme.spacing(2)
-			}
-		}))(MuiDialogContent);
 
 		dayjs.extend(relativeTime);
 		const { classes } = this.props;
-		const { open, errors, viewOpen } = this.state;
+		const { open, errors } = this.state;
 
 		const handleClickOpen = () => {
 			this.setState({
@@ -328,7 +361,8 @@ class todo extends Component {
 				cfMotherTesting: '',
 				cfFatherTesting: '',
 				buttonType: '',
-				open: true
+				open: true,
+				viewType: ''
 			});
 		};
 
@@ -392,9 +426,6 @@ class todo extends Component {
 				});
 		};
 
-		const handleViewClose = () => {
-			this.setState({ viewOpen: false });
-		};
 
 		const handleClose = (event) => {
 			this.setState({ open: false });
@@ -426,17 +457,18 @@ class todo extends Component {
 								<IconButton edge="start" color="inherit" onClick={handleClose} aria-label="close">
 									<CloseIcon />
 								</IconButton>
-								<Typography variant="h6" className={classes.title}>
+								
+								{this.state.viewType !== 'view' && <Typography variant="h6" className={classes.title}>
 									{this.state.buttonType === 'Edit' ? 'Edit Patient Record' : 'Add New Patient Record'}
-								</Typography>
-								<Button
+								</Typography>}
+								{this.state.viewType !== 'view' &&<Button
 									autoFocus
 									color="inherit"
 									onClick={handleSubmit}
 									className={classes.submitButton}
 								>
 									{this.state.buttonType === 'Edit' ? 'Save' : 'Submit'}
-								</Button>
+								</Button>}
 							</Toolbar>
 						</AppBar>
 
@@ -445,7 +477,6 @@ class todo extends Component {
 								<Grid item xs={4}>
 									<TextField
 										variant="outlined"
-										required
 										fullWidth
 										id="case"
 										label="Case"
@@ -455,12 +486,13 @@ class todo extends Component {
 										value={this.state.case}
 										error={errors?.case ? true : false}
 										onChange={this.handleChange}
+										disabled={this.state.viewType === "view" ? true : false}
+										type="number"
 									/>
 								</Grid>
 								<Grid item xs={4}>
 									<TextField
 										variant="outlined"
-										required
 										fullWidth
 										id="nso"
 										label="NSO Episode Number"
@@ -470,6 +502,8 @@ class todo extends Component {
 										error={errors?.nso ? true : false}
 										onChange={this.handleChange}
 										value={this.state.nso}
+										disabled={this.state.viewType === "view" ? true : false}
+										type="number"
 									/>
 								</Grid>
 								<Grid item xs={4}>
@@ -485,6 +519,7 @@ class todo extends Component {
 										error={errors?.patientName ? true : false}
 										onChange={this.handleChange}
 										value={this.state.patientName}
+										disabled={this.state.viewType === "view" ? true : false}
 									/>
 								</Grid>
 								<Grid item xs={4}>
@@ -500,6 +535,8 @@ class todo extends Component {
 										error={errors?.hsc ? true : false}
 										onChange={this.handleChange}
 										value={this.state.hsc}
+										disabled={this.state.viewType === "view" ? true : false}
+										type="number"
 									/>
 								</Grid>
 								<Grid item xs={4}>
@@ -515,6 +552,8 @@ class todo extends Component {
 										error={errors?.pedigree ? true : false}
 										onChange={this.handleChange}
 										value={this.state.pedigree}
+										disabled={this.state.viewType === "view" ? true : false}
+										type="number"
 									/>
 								</Grid>
 								<Grid item xs={4}>
@@ -530,6 +569,8 @@ class todo extends Component {
 										error={errors?.dob ? true : false}
 										onChange={this.handleChange}
 										value={this.state.dob}
+										disabled={this.state.viewType === "view" ? true : false}
+										type="date"
 									/>
 								</Grid>
 								<Grid item xs={4}>
@@ -545,12 +586,13 @@ class todo extends Component {
 										error={errors?.doc ? true : false}
 										onChange={this.handleChange}
 										value={this.state.doc}
+										disabled={this.state.viewType === "view" ? true : false}
+										type="date"
 									/>
 								</Grid>
 								<Grid item xs={4}>
 									<TextField
 										variant="outlined"
-										required
 										fullWidth
 										id="ageAtCollection"
 										label="Age at collection"
@@ -560,6 +602,7 @@ class todo extends Component {
 										error={errors?.ageAtCollection ? true : false}
 										onChange={this.handleChange}
 										value={this.state.ageAtCollection}
+										disabled={this.state.viewType === "view" ? true : false}
 									/>
 								</Grid>
 								<Grid item xs={4}>
@@ -575,6 +618,8 @@ class todo extends Component {
 										error={errors?.reportDate ? true : false}
 										onChange={this.handleChange}
 										value={this.state.reportDate}
+										type="date"
+										disabled={this.state.viewType === "view" ? true : false}
 									/>
 								</Grid>
 								<Grid item xs={4}>
@@ -590,6 +635,7 @@ class todo extends Component {
 										error={errors?.labAnomalies ? true : false}
 										onChange={this.handleChange}
 										value={this.state.labAnomalies}
+										disabled={this.state.viewType === "view" ? true : false}
 									/>
 								</Grid>
 								<Grid item xs={4}>
@@ -605,6 +651,7 @@ class todo extends Component {
 										error={errors?.screenCondition ? true : false}
 										onChange={this.handleChange}
 										value={this.state.screenCondition}
+										disabled={this.state.viewType === "view" ? true : false}
 									/>
 								</Grid>
 								<Grid item xs={4}>
@@ -615,11 +662,11 @@ class todo extends Component {
 										id="tpn"
 										label="TPN (Y/N)"
 										name="tpn"
-										autoComplete="tpn"
 										helperText={errors?.tpn}
 										error={errors?.tpn ? true : false}
 										onChange={this.handleChange}
 										value={this.state.tpn}
+										disabled={this.state.viewType === "view" ? true : false}
 									/>
 								</Grid>
 								<Grid item xs={4}>
@@ -635,6 +682,7 @@ class todo extends Component {
 										error={errors?.prem ? true : false}
 										onChange={this.handleChange}
 										value={this.state.prem}
+										disabled={this.state.viewType === "view" ? true : false}
 									/>
 								</Grid>
 								<Grid item xs={4}>
@@ -650,6 +698,7 @@ class todo extends Component {
 										error={errors?.nicu ? true : false}
 										onChange={this.handleChange}
 										value={this.state.nicu}
+										disabled={this.state.viewType === "view" ? true : false}
 									/>
 								</Grid>
 								<Grid item xs={4}>
@@ -659,12 +708,13 @@ class todo extends Component {
 										fullWidth
 										id="gestationalAge"
 										label="Gestational Age"
-										name="Gestational Age"
+										name="gestationalAge"
 										autoComplete="gestationalAge"
 										helperText={errors?.gestationalAge}
 										error={errors?.gestationalAge ? true : false}
 										onChange={this.handleChange}
 										value={this.state.gestationalAge}
+										disabled={this.state.viewType === "view" ? true : false}
 									/>
 								</Grid>
 								<Grid item xs={4}>
@@ -680,6 +730,7 @@ class todo extends Component {
 										error={errors?.birthWeight ? true : false}
 										onChange={this.handleChange}
 										value={this.state.birthWeight}
+										disabled={this.state.viewType === "view" ? true : false}
 									/>
 								</Grid>
 								<Grid item xs={4}>
@@ -695,6 +746,7 @@ class todo extends Component {
 										error={errors?.irt ? true : false}
 										onChange={this.handleChange}
 										value={this.state.irt}
+										disabled={this.state.viewType === "view" ? true : false}
 									/>
 								</Grid>
 								<Grid item xs={4}>
@@ -710,6 +762,7 @@ class todo extends Component {
 										error={errors?.cftr ? true : false}
 										onChange={this.handleChange}
 										value={this.state.cftr}
+										disabled={this.state.viewType === "view" ? true : false}
 									/>
 								</Grid>
 								<Grid item xs={4}>
@@ -725,6 +778,7 @@ class todo extends Component {
 										error={errors?.category ? true : false}
 										onChange={this.handleChange}
 										value={this.state.category}
+										disabled={this.state.viewType === "view" ? true : false}
 									/>
 								</Grid>
 								<Grid item xs={4}>
@@ -740,6 +794,7 @@ class todo extends Component {
 										error={errors?.nbs ? true : false}
 										onChange={this.handleChange}
 										value={this.state.nbs}
+										disabled={this.state.viewType === "view" ? true : false}
 									/>
 								</Grid>
 								<Grid item xs={5}>
@@ -750,11 +805,12 @@ class todo extends Component {
 										id="dateOfFirstContact"
 										label="Date of 1st contact w family/MD"
 										name="dateOfFirstContact"
-										autoComplete="dateOfFirstContact"
 										helperText={errors?.dateOfFirstContact}
 										error={errors?.dateOfFirstContact ? true : false}
 										onChange={this.handleChange}
 										value={this.state.dateOfFirstContact}
+										disabled={this.state.viewType === "view" ? true : false}
+										type="date"
 									/>
 								</Grid>
 								<Grid item xs={5}>
@@ -765,11 +821,12 @@ class todo extends Component {
 										id="dateOfDiagnostic"
 										label="Date of retrieval for diagnostic evaluation"
 										name="dateOfDiagnostic"
-										autoComplete="dateOfDiagnostic"
 										helperText={errors?.dateOfDiagnostic}
 										error={errors?.dateOfDiagnostic ? true : false}
 										onChange={this.handleChange}
 										value={this.state.dateOfDiagnostic}
+										disabled={this.state.viewType === "view" ? true : false}
+										type="date"
 									/>
 								</Grid>
 								<Grid item xs={5}>
@@ -780,11 +837,11 @@ class todo extends Component {
 										id="placeOfDiagnostic"
 										label="Where was diagnostic testing done? (HSC or Other)"
 										name="placeOfDiagnostic"
-										autoComplete="placeOfDiagnostic"
 										helperText={errors?.placeOfDiagnostic}
 										error={errors?.placeOfDiagnostic ? true : false}
 										onChange={this.handleChange}
 										value={this.state.placeOfDiagnostic}
+										disabled={this.state.viewType === "view" ? true : false}
 									/>
 								</Grid>
 								<Grid item xs={4}>
@@ -800,21 +857,7 @@ class todo extends Component {
 										error={errors?.confirmatory ? true : false}
 										onChange={this.handleChange}
 										value={this.state.confirmatory}
-									/>
-								</Grid>
-								<Grid item xs={4}>
-									<TextField
-										variant="outlined"
-										required
-										fullWidth
-										id="notes"
-										label="Notes"
-										name="notes"
-										autoComplete="notes"
-										helperText={errors?.notes}
-										error={errors?.notes ? true : false}
-										onChange={this.handleChange}
-										value={this.state.notes}
+										disabled={this.state.viewType === "view" ? true : false}
 									/>
 								</Grid>
 								<Grid item xs={4}>
@@ -825,11 +868,12 @@ class todo extends Component {
 										id="dateOfDecision"
 										label="Date decision made"
 										name="dateOfDecision"
-										autoComplete="dateOfDecision"
 										helperText={errors?.dateOfDecision}
 										error={errors?.dateOfDecision ? true : false}
 										onChange={this.handleChange}
 										value={this.state.dateOfDecision}
+										disabled={this.state.viewType === "view" ? true : false}
+										type="date"
 									/>
 								</Grid>
 								<Grid item xs={4}>
@@ -845,6 +889,7 @@ class todo extends Component {
 										error={errors?.cheo ? true : false}
 										onChange={this.handleChange}
 										value={this.state.cheo}
+										disabled={this.state.viewType === "view" ? true : false}
 									/>
 								</Grid>
 								<Grid item xs={4}>
@@ -860,6 +905,7 @@ class todo extends Component {
 										error={errors?.cfMotherTesting ? true : false}
 										onChange={this.handleChange}
 										value={this.state.cfMotherTesting}
+										disabled={this.state.viewType === "view" ? true : false}
 									/>
 								</Grid>
 								<Grid item xs={4}>
@@ -875,6 +921,25 @@ class todo extends Component {
 										error={errors?.cfFatherTesting ? true : false}
 										onChange={this.handleChange}
 										value={this.state.cfFatherTesting}
+										disabled={this.state.viewType === "view" ? true : false}
+									/>
+								</Grid>
+								<Grid item xs={12}>
+									<TextField
+										variant="outlined"
+										fullWidth
+										id="notes"
+										label="Notes"
+										name="notes"
+										autoComplete="notes"
+										helperText={errors?.notes}
+										error={errors?.notes ? true : false}
+										onChange={this.handleChange}
+										value={this.state.notes}
+										disabled={this.state.viewType === "view" ? true : false}
+										multiline
+										rows={5}
+										rowsMax={5}
 									/>
 								</Grid>
 							</Grid>
@@ -883,10 +948,9 @@ class todo extends Component {
 
 						<TextField
 							variant="outlined"
-							required
 							fullWidth
 							id="cfFatherTesting"
-							label="Search"
+							label="Search by HSC number..."
 							name="cfFatherTesting"
 							autoComplete="cfFatherTesting"
 							helperText={errors?.search}
@@ -894,14 +958,18 @@ class todo extends Component {
 							onChange={this.handleChange}
 							value={this.state.search}
 							onKeyDown={this.handleSearch}
+							type="number"
+							style={{width: '500px', paddingBottom: '20px'}}
 						/>
+						<Button onClick={() => this.handleViewAllData(false)} size="large" className="viewAll" variant="outlined">View All</Button>
+						<Button onClick={() => this.handleViewAllData(true)} size="large" className="viewAll" variant="outlined">Download All Data</Button>
 					<Grid container spacing={2}>
 						{this.state.todos.map((todo) => (
 							<Grid item xs={12} sm={6}>
 								<Card className={classes.root} variant="outlined">
 									<CardContent>
 										<Typography variant="h5" component="h2">
-											{`HSC: ${todo.case}`}
+											{`HSC: ${todo.hsc}`}
 										</Typography>
 										<Typography variant="body2" component="p">
 											{`Name: ${todo.patientName}`}
@@ -911,11 +979,11 @@ class todo extends Component {
 										</Typography>
 									</CardContent>
 									<CardActions>
-										<Button size="small" color="primary" onClick={() => this.handleViewOpen({ todo })}>
+										<Button size="small" color="primary" onClick={() => this.handleEditClickOpen({ todo }, "view")}>
 											{' '}
 											View{' '}
 										</Button>
-										<Button size="small" color="primary" onClick={() => this.handleEditClickOpen({ todo })}>
+										<Button size="small" color="primary" onClick={() => this.handleEditClickOpen({ todo }, "edit")}>
 											Edit
 										</Button>
 										<Button size="small" color="primary" onClick={() => this.deleteTodoHandler({ todo })}>
@@ -927,118 +995,7 @@ class todo extends Component {
 						))}
 					</Grid>
 
-					<Dialog
-						onClose={handleViewClose}
-						aria-labelledby="customized-dialog-title"
-						open={viewOpen}
-						fullWidth
-						classes={{ paperFullWidth: classes.dialogeStyle }}
-					>
-						<DialogTitle id="customized-dialog-title" onClose={handleViewClose}>
-							{`Case: ${this.state.case}  HSC: ${this.state.hsc}`}
-						</DialogTitle>
-						<DialogContent dividers>
-							<TextField
-								fullWidth
-								id="todoDetails"
-								name="body"
-								readonly
-								rows={1}
-								rowsMax={25}
-								value={`Name: ${this.state.patientName}`}
-								InputProps={{
-									disableUnderline: true
-								}}
-							/>
-							<TextField
-								fullWidth
-								id="todoDetails"
-								name="body"
-								readonly
-								rows={1}
-								rowsMax={25}
-								value={`NSO Number: ${this.state.nso}`}
-								InputProps={{
-									disableUnderline: true
-								}}
-							/>
-						</DialogContent>
-						<DialogContent dividers>
-							<TextField
-								fullWidth
-								id="todoDetails"
-								name="body"
-								multiline
-								readonly
-								rows={1}
-								rowsMax={25}
-								value={`NBS Team: ${this.state.nbs}`}
-								InputProps={{
-									disableUnderline: true
-								}}
-							/>
-						</DialogContent>
-						<DialogContent dividers>
-							<TextField
-								fullWidth
-								id="todoDetails"
-								name="body"
-								multiline
-								readonly
-								rows={1}
-								rowsMax={25}
-								value={this.state.patientName}
-								InputProps={{
-									disableUnderline: true
-								}}
-							/>
-						</DialogContent>
-						<DialogContent dividers>
-							<TextField
-								fullWidth
-								id="todoDetails"
-								name="body"
-								multiline
-								readonly
-								rows={1}
-								rowsMax={25}
-								value={this.state.patientName}
-								InputProps={{
-									disableUnderline: true
-								}}
-							/>
-						</DialogContent>
-						<DialogContent dividers>
-							<TextField
-								fullWidth
-								id="todoDetails"
-								name="body"
-								multiline
-								readonly
-								rows={1}
-								rowsMax={25}
-								value={this.state.patientName}
-								InputProps={{
-									disableUnderline: true
-								}}
-							/>
-						</DialogContent>
-						<DialogContent dividers>
-							<TextField
-								fullWidth
-								id="todoDetails"
-								name="body"
-								multiline
-								readonly
-								rows={1}
-								rowsMax={25}
-								value={this.state.patientName}
-								InputProps={{
-									disableUnderline: true
-								}}
-							/>
-						</DialogContent>
-					</Dialog>
+					
 				</main>
 			);
 		}

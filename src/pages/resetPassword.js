@@ -3,8 +3,6 @@ import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import TextField from '@material-ui/core/TextField';
-import Link from '@material-ui/core/Link';
-import Grid from '@material-ui/core/Grid';
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
 import withStyles from '@material-ui/core/styles/withStyles';
@@ -40,13 +38,12 @@ const styles = (theme) => ({
 	}
 });
 
-class login extends Component {
+class resetPassword extends Component {
 	constructor(props) {
 		super(props);
 
 		this.state = {
 			email: '',
-			password: '',
 			errors: [],
 			loading: false
 		};
@@ -69,28 +66,36 @@ class login extends Component {
 
 	handleSubmit = (event) => {
 		event.preventDefault();
-		this.setState({ loading: true });
+        this.setState({ loading: true });
+        
+        //ToDo: regex check for sickkids email
+
+
 		const userData = {
-			email: this.state.email,
-			password: this.state.password
+			email: this.state.email
 		};
 		API
-			.post('/login', userData)
+			.post('/passwordReset', userData)
 			.then((response) => {
-				debugger
-				localStorage.setItem('AuthToken', `Bearer ${response.data.token}`);
+                alert(response.data.message)
 				this.setState({ 
 					loading: false,
 				});		
-				this.props.history.push('/');
+				this.props.history.push('/login');
 			})
 			.catch((error) => {	
 				this.setState({
-					errors: error.message,
+					errors: {
+						email: 'Email doesnt exist'
+					},
 					loading: false
 				});
 			});
-	};
+    };
+    
+    goBack = (event) => {
+        this.props.history.push('/login')
+    }
 
 	render() {
 		const { classes } = this.props;
@@ -99,11 +104,12 @@ class login extends Component {
 			<Container component="main" maxWidth="xs">
 				<CssBaseline />
 				<div className={classes.paper}>
-					<img 
-						src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/The_Hospital_for_Sick_Children_Logo.svg/1200px-The_Hospital_for_Sick_Children_Logo.svg.png" 
-						alt=""
-						width="500px"
-						 />
+					<Avatar className={classes.avatar}>
+						<LockOutlinedIcon />
+					</Avatar>
+					<Typography component="h1" variant="h5">
+						Password Reset
+					</Typography>
 					<form className={classes.form} noValidate>
 						<TextField
 							variant="outlined"
@@ -119,20 +125,7 @@ class login extends Component {
 							error={errors.email ? true : false}
 							onChange={this.handleChange}
 						/>
-						<TextField
-							variant="outlined"
-							margin="normal"
-							required
-							fullWidth
-							name="password"
-							label="Password"
-							type="password"
-							id="password"
-							autoComplete="current-password"
-							helperText={errors.password}
-							error={errors.password ? true : false}
-							onChange={this.handleChange}
-						/>
+						
 						<Button
 							type="submit"
 							fullWidth
@@ -140,25 +133,21 @@ class login extends Component {
 							color="primary"
 							className={classes.submit}
 							onClick={this.handleSubmit}
-							disabled={loading || !this.state.email || !this.state.password}
+							disabled={loading || !this.state.email }
 						>
-							Sign In
+							Send Recovery Email
 							{loading && <CircularProgress size={30} className={classes.progess} />}
 						</Button>
-						<Grid container>
-						<Grid item>
-							<Link href="resetpassword" variant="body2">
-								{"Reset Password"}
-							</Link>
-						</Grid>
-						</Grid>
-						<Grid container>
-							<Grid item>
-								<Link href="signup" variant="body2">
-									{"Don't have an account? Sign Up"}
-								</Link>
-							</Grid>
-						</Grid>
+                        <Button
+							type="submit"
+							fullWidth
+							variant="contained"
+							color="primary"
+							onClick={this.goBack}
+						>
+                            Go Back
+							{loading && <CircularProgress size={30} className={classes.progess} />}
+						</Button>
 						{errors.general && (
 							<Typography variant="body2" className={classes.customError}>
 								{errors.general}
@@ -171,4 +160,4 @@ class login extends Component {
 	}
 }
 
-export default withStyles(styles)(login);
+export default withStyles(styles)(resetPassword);
