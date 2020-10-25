@@ -10,7 +10,9 @@ import Typography from '@material-ui/core/Typography';
 import Container from '@material-ui/core/Container';
 import withStyles from '@material-ui/core/styles/withStyles';
 import CircularProgress from '@material-ui/core/CircularProgress';
-
+import Particles from 'react-particles-js';
+import './signup.css'
+import {particlesOptions} from '../constants/particleTheme';
 import API from "../util/API";
 
 const styles = (theme) => ({
@@ -111,14 +113,16 @@ class signup extends Component {
 		const { errors, loading } = this.state;
 		return (
 			<Container component="main" maxWidth="xs">
+				<Particles className='particles'
+                params={particlesOptions}
+                />
 				<CssBaseline />
 				<div className={classes.paper}>
-					<Avatar className={classes.avatar}>
-						<LockOutlinedIcon />
-					</Avatar>
-					<Typography component="h1" variant="h5">
-						Sign up
-					</Typography>
+					<img 
+						src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/The_Hospital_for_Sick_Children_Logo.svg/1200px-The_Hospital_for_Sick_Children_Logo.svg.png" 
+						alt=""
+						width="500px"
+					/>
 					<form className={classes.form} noValidate>
 						<Grid container spacing={2}>
 							<Grid item xs={12} sm={6}>

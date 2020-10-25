@@ -5,12 +5,14 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import TextField from '@material-ui/core/TextField';
 import Link from '@material-ui/core/Link';
 import Grid from '@material-ui/core/Grid';
-import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
 import withStyles from '@material-ui/core/styles/withStyles';
 import Container from '@material-ui/core/Container';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import API from "../util/API";
+import Particles from 'react-particles-js';
+import './login.css'
+import {particlesOptions} from '../constants/particleTheme';
 
 const styles = (theme) => ({
 	paper: {
@@ -97,6 +99,9 @@ class login extends Component {
 		const { errors, loading } = this.state;
 		return (
 			<Container component="main" maxWidth="xs">
+				<Particles className='particles'
+                params={particlesOptions}
+                />
 				<CssBaseline />
 				<div className={classes.paper}>
 					<img 
