@@ -79,7 +79,6 @@ class login extends Component {
 		API
 			.post('/login', userData)
 			.then((response) => {
-				debugger
 				localStorage.setItem('AuthToken', `Bearer ${response.data.token}`);
 				this.setState({ 
 					loading: false,

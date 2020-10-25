@@ -570,7 +570,6 @@ class todo extends Component {
 										onChange={this.handleChange}
 										value={this.state.dob}
 										disabled={this.state.viewType === "view" ? true : false}
-										type="date"
 									/>
 								</Grid>
 								<Grid item xs={4}>
@@ -587,7 +586,6 @@ class todo extends Component {
 										onChange={this.handleChange}
 										value={this.state.doc}
 										disabled={this.state.viewType === "view" ? true : false}
-										type="date"
 									/>
 								</Grid>
 								<Grid item xs={4}>
@@ -618,7 +616,6 @@ class todo extends Component {
 										error={errors?.reportDate ? true : false}
 										onChange={this.handleChange}
 										value={this.state.reportDate}
-										type="date"
 										disabled={this.state.viewType === "view" ? true : false}
 									/>
 								</Grid>
@@ -810,7 +807,6 @@ class todo extends Component {
 										onChange={this.handleChange}
 										value={this.state.dateOfFirstContact}
 										disabled={this.state.viewType === "view" ? true : false}
-										type="date"
 									/>
 								</Grid>
 								<Grid item xs={5}>
@@ -826,7 +822,6 @@ class todo extends Component {
 										onChange={this.handleChange}
 										value={this.state.dateOfDiagnostic}
 										disabled={this.state.viewType === "view" ? true : false}
-										type="date"
 									/>
 								</Grid>
 								<Grid item xs={5}>
@@ -873,7 +868,6 @@ class todo extends Component {
 										onChange={this.handleChange}
 										value={this.state.dateOfDecision}
 										disabled={this.state.viewType === "view" ? true : false}
-										type="date"
 									/>
 								</Grid>
 								<Grid item xs={4}>
