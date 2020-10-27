@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import API from "../util/API";
+import axios from "axios";
 
 import Account from '../components/account';
 import Todo from '../components/todo';
@@ -123,10 +124,19 @@ class home extends Component {
 
 	componentDidMount = () => {
 		authMiddleWare(this.props.history);
-		// const authToken = localStorage.getItem('AuthToken');
-		// API.defaults.headers.common = { Authorization: `${authToken}` };
 		if(this.state.uiLoading){
-			API
+			const API2 = axios.create({
+				// baseURL: "https://us-central1-sickkids-f3f02.cloudfunctions.net/api",
+				baseURL: "http://localhost:5001/sickkids-f3f02/us-central1/api",
+				responseType: "json",
+				headers: {
+				  common: {
+					Authorization: localStorage.getItem('AuthToken')
+				  }
+				}
+			  });
+
+			API2
 			.get('/user')
 			.then((response) => {
 				this.setState({
