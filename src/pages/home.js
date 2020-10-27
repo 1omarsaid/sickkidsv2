@@ -125,18 +125,7 @@ class home extends Component {
 	componentDidMount = () => {
 		authMiddleWare(this.props.history);
 		if(this.state.uiLoading){
-			const API2 = axios.create({
-				// baseURL: "https://us-central1-sickkids-f3f02.cloudfunctions.net/api",
-				baseURL: "http://localhost:5001/sickkids-f3f02/us-central1/api",
-				responseType: "json",
-				headers: {
-				  common: {
-					Authorization: localStorage.getItem('AuthToken')
-				  }
-				}
-			  });
-
-			API2
+			API
 			.get('/user')
 			.then((response) => {
 				this.setState({

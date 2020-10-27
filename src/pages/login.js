@@ -86,7 +86,6 @@ class login extends Component {
 				this.props.history.push('/');
 			})
 			.catch((error) => {	
-				debugger
 				this.setState({
 					errors: error.message,
 					loading: false
@@ -153,7 +152,7 @@ class login extends Component {
 						<Grid container>
 						<Grid item>
 							<Link href="resetpassword" variant="body2">
-								{"Reset Password"}
+								{"Reset Password!!!"}
 							</Link>
 						</Grid>
 						</Grid>
